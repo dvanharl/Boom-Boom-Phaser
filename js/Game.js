@@ -317,22 +317,23 @@ boomRocket.Game.prototype = {
         this.ground.body.inmovable = true;
         this.ground.fixedToCamera = true;
 
-        this.shipTrail = this.game.add.emitter(this.player.x, this.player.y + 25,20);
-        this.shipTrail.setScale(0.05, 0.125, 0.05, 0.125, 1500, Phaser.Easing.Quadratic.Out);
+        this.shipTrail = this.game.add.emitter(this.player.x, this.player.y + 25,60);
+        this.shipTrail.setScale(2, 5, 2, 5, 1500, Phaser.Easing.Quadratic.Out);
         this.shipTrail.setAlpha(0.01, 0.6, 3000 ,Phaser.Easing.Linear.InOut);
         this.shipTrail.setXSpeed(-50, 50);
         this.shipTrail.setYSpeed(-10, 40);
-        //this.shipTrail.makeParticles(this.game.cache.getBitmapData('black'),20);
-		this.shipTrail.makeParticles('blackC',20);
-        this.shipTrail.flow(600, 200, 8, -1,true);
+        this.shipTrail.makeParticles(this.game.cache.getBitmapData('black'),60);
+		//this.shipTrail.makeParticles('blackC',20);
+        this.shipTrail.flow(600, 10, 1, -1, false);
 
-        this.fireEngine = this.game.add.emitter(this.player.x, this.player.y + 20,8);
-        this.fireEngine.setScale(0.05, 0.1, 0.05, 0.1);
+        this.fireEngine = this.game.add.emitter(this.player.x, this.player.y + 20,100);
+        this.fireEngine.setScale(1, 2, 1, 2);
         this.fireEngine.setAlpha(0.01, 0.5);
         this.fireEngine.setXSpeed(-6, 6);
         this.fireEngine.setYSpeed(-5, -5);
-        this.fireEngine.makeParticles(['yellowC','redC'],8);
-        this.fireEngine.flow(100, 200, 6, -1,false);
+        //this.fireEngine.makeParticles(['yellowC','redC'],8);
+		this.fireEngine.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],100);
+        this.fireEngine.flow(800, 10, 1, -1,false);
         
         this.circle1 = this.game.add.sprite(0, 0, 'circle');
         this.circle1.scale.set(0);
@@ -354,7 +355,7 @@ boomRocket.Game.prototype = {
         this.playerDeath.setXSpeed(-300, 300);
         this.playerDeath.setYSpeed(-300, 300);
         this.playerDeath.setRotation(50,-100);
-        this.playerDeath.setScale(0.05, 0.25, 0.05, 0.25, 1000, Phaser.Easing.Quintic.Out);
+        this.playerDeath.setScale(1, 5, 1, 5, 1000, Phaser.Easing.Quintic.Out);
         this.playerDeath.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red'),this.game.cache.getBitmapData('black')], 20);
 
         this.playerDeath2 = this.game.add.emitter(this.player.x,  this.player.y,10);
@@ -362,17 +363,17 @@ boomRocket.Game.prototype = {
         this.playerDeath2.setXSpeed(-200, 200);
         this.playerDeath2.setYSpeed(-200, 200);
         this.playerDeath2.setRotation(50,-100);
-        this.playerDeath2.setScale(0.3, 0.4, 0.3, 0.4, 1000, Phaser.Easing.Quintic.Out);
+        this.playerDeath2.setScale(6, 8, 6, 8, 1000, Phaser.Easing.Quintic.Out);
         this.playerDeath2.makeParticles(this.game.cache.getBitmapData('black'), 10);
 
-        this.jumpTrail = this.game.add.emitter(0, 20,20);
-        this.jumpTrail.setScale(0.1, 0.2, 0.1, 0.2, 800, Phaser.Easing.Quintic.Out);
+        this.jumpTrail = this.game.add.emitter(0, 20,60);
+        this.jumpTrail.setScale(4, 8, 4, 8, 800, Phaser.Easing.Quintic.Out);
         this.jumpTrail.setAlpha(0.01, 0.5);
         this.jumpTrail.setXSpeed(-20, 20);
         this.jumpTrail.setYSpeed(10, 800);
-        //this.jumpTrail.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],20);
-		this.jumpTrail.makeParticles(['yellowC','redC'],20);
-        this.player.addChild(this.jumpTrail);
+        this.jumpTrail.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],60);
+        //this.player.addChild(this.jumpTrail);
+		this.jumpTrail.flow(3200, 10, 1, -1, false);
     },
      
     createScore: function() {
@@ -400,11 +401,15 @@ boomRocket.Game.prototype = {
     },
 
     engineOn: function(){
-          if(isJumping || this.gameOver) return;
+          //if(isJumping || this.gameOver) return;
+		  if(this.gameOver) return;
 
           isJumping = true;
           this.isPowerUp = false;
           //this.jumpTrail.flow(200, 250, 20, 20,false);
+		  if(this.speedTween != null) this.speedTween.stop();
+		  this.player.body.velocity.x = 0;
+          this.player.body.velocity.y = 0;
 		  this.jumpTrail.start(false, 400, 80, 15);
           this.acceleratePlayer(config.normalJump,600);
      },
@@ -422,9 +427,8 @@ boomRocket.Game.prototype = {
 		  this.player.body.acceleration.set(0,0);
           this.player.body.velocity.x = Math.cos(this.player.rotation  - (Math.PI / 2)) * power;
           this.player.body.velocity.y = Math.sin(this.player.rotation  - (Math.PI / 2)) * power;
-		  console.log(this.isPowerUp);
 		  this.speedTween = null;
-		  this.speedTween = this.game.add.tween(this.player.body.velocity).to({x:0,y:0},duration * (1/3),Phaser.Easing.Sinusoidal.Out,false,duration*2/3,0,false);
+		  this.speedTween = this.game.add.tween(this.player.body.velocity).to({x:0,y:0},duration,Phaser.Easing.Sinusoidal.Out,false,0,0,false);
 		  this.speedTween.start();
 		  
           this.game.time.events.add(duration,this.engineOff,this);
@@ -442,8 +446,10 @@ boomRocket.Game.prototype = {
           this.specialPower.emitX = this.player.x;
           this.specialPower.emitY = this.player.y-this.game.height;
           //this.jumpTrail.flow(200, 250, 20, 20,false);
-		  this.jumpTrail.start(false, 100, 80, 30);
-          this.specialPower.flow(800, 150, 150, 150,true);
+		  this.jumpTrail.flow(3200, 10, 1, -1, false);
+		  //this.jumpTrail.start(false, 100, 80, 30);
+          //this.specialPower.flow(800, 150, 150, 150,true);
+		  this.specialPower.flow(1000, 10, 1, 80,true);
           this.acceleratePlayer(config.specialJump,700);
      },
 
@@ -455,12 +461,6 @@ boomRocket.Game.prototype = {
 		var scaler = 0;
 		var scaleUp = true;
         if(!this.isStart) return;
-		/*if(isJumping && !this.isPowerUp){
-			this.player.body.velocity.x = this.player.body.velocity.x/1.15;
-			this.player.body.velocity.y = this.player.body.velocity.y/1.15;
-		}else if(isJumping && this.isPowerUp){
-			this.player.body.velocity.y = this.player.body.velocity.y/1.03;
-		}*/
 
         this.shipTrail.emitX = this.player.x;
         this.shipTrail.emitY = this.player.y + 25;
@@ -515,7 +515,7 @@ boomRocket.Game.prototype = {
           this.game.physics.arcade.overlap(this.player, this.items, this.activatePower, null, this);
         }
 
-        if(isJumping == false){
+        //if(isJumping == false){
         
           this.player.angle += rotationSpeed * (this.game.time.elapsed/1000);
 
@@ -527,7 +527,7 @@ boomRocket.Game.prototype = {
               this.player.angle = -config.angleLimit;
               rotationSpeed *= -1;
           }
-        }
+        //}
     },
 
     changeBgColor: function(){

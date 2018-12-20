@@ -20,9 +20,9 @@ boomRocket.Preloader.prototype = {
         this.load.image('spike','assets/spike.png');  
 		this.load.image('blackBG','assets/blackBackground.png');
 		this.load.image('whiteBG','assets/restartScreen.png');
-		this.load.image('blackC','assets/blackCircle.png');
-		this.load.image('redC','assets/redCircle.png');
-		this.load.image('yellowC','assets/yellowCircle.png');
+		//this.load.image('blackC','assets/blackCircle.png');
+		//this.load.image('redC','assets/redCircle.png');
+		//this.load.image('yellowC','assets/yellowCircle.png');
         this.load.spritesheet('item','assets/item.png',32,32);  
     },
 
