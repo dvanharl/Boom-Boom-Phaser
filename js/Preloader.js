@@ -13,6 +13,7 @@ boomRocket.Preloader.prototype = {
     
     preload: function() {
         this.load.bitmapFont('font', 'assets/font.png', 'assets/font.xml');
+		this.load.bitmapFont('fontB', 'assets/fontB.png', 'assets/font.xml');
         this.load.image('arrow','assets/arrows.png');
         this.load.image('circle','assets/Circle.png');
         this.load.image('rocket','assets/Rocket.png');
@@ -20,9 +21,8 @@ boomRocket.Preloader.prototype = {
         this.load.image('spike','assets/spike.png');  
 		this.load.image('blackBG','assets/blackBackground.png');
 		this.load.image('whiteBG','assets/restartScreen.png');
-		//this.load.image('blackC','assets/blackCircle.png');
-		//this.load.image('redC','assets/redCircle.png');
-		//this.load.image('yellowC','assets/yellowCircle.png');
+		this.load.image('restartBlock','assets/restartBlock.png');
+		this.load.image('border','assets/border.png');
         this.load.spritesheet('item','assets/item.png',32,32);  
     },
 
@@ -43,6 +43,12 @@ boomRocket.Preloader.prototype = {
         white.ctx.rect(0,0,4,4);
         white.ctx.fill();
         this.game.cache.addBitmapData('white', white);
+		
+		var white = this.game.add.bitmapData(100, 30);
+        white.ctx.fillStyle = 'white';
+        white.ctx.rect(0,0,100,30);
+        white.ctx.fill();
+        this.game.cache.addBitmapData('white2', white);
 
         var redSmoke = this.game.add.bitmapData(3, 3);
         redSmoke.ctx.rect(0,0,4,4);
