@@ -33,6 +33,8 @@ boomRocket.Game.prototype = {
         this.shipTrail.emitY = this.player.y + 25;
         this.fireEngine.emitX = this.player.x;
         this.fireEngine.emitY = this.player.y + 20;
+		this.playerDeath.visible = false;
+		this.playerDeath2.visible = false;
         this.game.camera.focusOn(this.player);
         this.jumpTrail.revive();
         this.circle.revive();
@@ -104,6 +106,8 @@ boomRocket.Game.prototype = {
         this.circle1.effectDot2.start(); 
         this.circle2.effectDot.start(); 
         this.circle2.effectDot2.start(); 
+		this.playerDeath.visible = true;
+		this.playerDeath2.visible = true;
         this.playerDeath.flow(3000, 250, 50, 50,true);
         this.playerDeath2.flow(3000, 250, 50, 50,true);
     },
@@ -412,7 +416,7 @@ boomRocket.Game.prototype = {
         this.playerDeath.setYSpeed(-200, 200);
         this.playerDeath.setRotation(50,-100);
         this.playerDeath.setScale(1, 5, 1, 5, 1500, Phaser.Easing.Quintic.Out);
-        this.playerDeath.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red'),this.game.cache.getBitmapData('black')], 50);
+        this.playerDeath.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red'),this.game.cache.getBitmapData('black')], 0, 50, true, false);
 
         this.playerDeath2 = this.game.add.emitter(this.player.x,  this.player.y,40);
         this.playerDeath2.setAlpha(0.2, 0.3, 800);
@@ -420,8 +424,11 @@ boomRocket.Game.prototype = {
         this.playerDeath2.setYSpeed(-200, 200);
         this.playerDeath2.setRotation(50,-100);
         this.playerDeath2.setScale(6, 8, 6, 8, 1500, Phaser.Easing.Quintic.Out);
-        this.playerDeath2.makeParticles(this.game.cache.getBitmapData('black'), 40);
+        this.playerDeath2.makeParticles(this.game.cache.getBitmapData('black'), 0, 40, true, false);
 
+		this.playerDeath.visible = false;
+		this.playerDeath2.visible = false;
+		
         this.jumpTrail = this.game.add.emitter(0, 20,60);
         this.jumpTrail.setScale(6, 12, 6, 12, 800, Phaser.Easing.Quintic.Out);
         this.jumpTrail.setAlpha(0.01, 0.5);
@@ -470,7 +477,7 @@ boomRocket.Game.prototype = {
     },
 
     engineOn: function(){
-		  if(this.gameOver) return;
+		  if(this.gameOver||this.isPowerUp) return;
 
           isJumping = true;
           this.isPowerUp = false;
