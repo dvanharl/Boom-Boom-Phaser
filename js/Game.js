@@ -18,7 +18,7 @@ boomRocket.Game.prototype = {
     },
 	
     restart: function(){
-		
+		this.game.camera.follow(this.player);
 		this.restartBG.alpha = 1;
 		//Particle reset
 		this.playerDeath.removeAll(true);
@@ -98,6 +98,7 @@ boomRocket.Game.prototype = {
     },
 
     explode: function(){
+		this.game.camera.unfollow();
 		this.game.camera.lerp.x = 1;
 		this.game.camera.lerp.y = 1;
         this.playerDeath.emitX = this.player.x;
@@ -166,7 +167,6 @@ boomRocket.Game.prototype = {
         this.areaEffect.x = this.game.rnd.between(this.player.x-this.game.width,this.player.x+this.game.width);
         this.areaEffect.y = this.game.rnd.between(this.player.y-this.game.height*0.8,this.player.y-this.game.height*0.3);*/
     },
-
 	
     createItems: function(){
         this.items = this.game.add.group();
@@ -558,7 +558,7 @@ boomRocket.Game.prototype = {
           this.acceleratePlayer(config.normalJump,600);
      },
 
-     engineOff: function(){
+    engineOff: function(){
 		 this.player.body.maxVelocity.set(1500);
           isJumping = false;
 		  this.isPowerUp = false;
@@ -573,7 +573,7 @@ boomRocket.Game.prototype = {
 		  },this);
      },
 
-     acceleratePlayer: function(power,duration){
+    acceleratePlayer: function(power,duration){
           //this.player.body.acceleration.set(Math.cos(this.player.rotation  - (Math.PI / 2)) * -.01,this.player.body.velocity.y = Math.sin(this.player.rotation  - (Math.PI / 2)) * -.01);
 		  this.player.body.acceleration.set(0,0);
 		  this.player.body.allowGravity = false;
@@ -588,20 +588,20 @@ boomRocket.Game.prototype = {
           this.game.time.events.add(duration,this.engineOff,this);
      },
 
-	 deceleratePlayer: function(){
-		 if(isJumping || (this.player.body.speed > 0.03 && this.player.body.velocity.y < 0)){
-			 this.player.body.velocity.x = this.player.body.velocity.x * 0.93;
-			 this.player.body.velocity.y = this.player.body.velocity.y * 0.93;
-		 }else if(this.player.body.velocity.y < 0){
-			 this.player.body.velocity.x = 0;
-			 //this.player.body.velocity.y = 0;
-		 }
-		 if(!this.isAffected && !isJumping){
+	deceleratePlayer: function(){
+		if(isJumping || (this.player.body.speed > 0.03 && this.player.body.velocity.y < 0)){
 			this.player.body.velocity.x = this.player.body.velocity.x * 0.93;
-		 }
-	 },
+			this.player.body.velocity.y = this.player.body.velocity.y * 0.93;
+		}else if(this.player.body.velocity.y < 0){
+			this.player.body.velocity.x = 0;
+			//this.player.body.velocity.y = 0;
+		}
+		if(!this.isAffected && !isJumping){
+			this.player.body.velocity.x = this.player.body.velocity.x * 0.93;
+		}
+	},
 	 
-     activatePower: function(player, item){
+    activatePower: function(player, item){
 		 this.player.body.maxVelocity.set(10000);
 		 //this.speedTween.stop();
 		 this.isPowerUp = true;
@@ -634,7 +634,7 @@ boomRocket.Game.prototype = {
           
      },
 
-     forceAreaEffect: function(player, effect){
+    forceAreaEffect: function(player, effect){
 		 this.isAffected = true;
         //this.game.physics.arcade.accelerationFromRotation(this.areaEffect.rotation,200,this.player.body.acceleration)
 		this.game.physics.arcade.accelerationFromRotation(effect.rotation,150,this.player.body.acceleration);
@@ -654,6 +654,10 @@ boomRocket.Game.prototype = {
         this.fireEngine.emitY = this.player.y + 20;
 		this.shieldTrail.emitX = this.player.x;
 		this.shieldTrail.emitY = this.player.y;
+		
+		this.shipTrail.forEachDead(function(particle){
+			particle.tint
+		});
 		
 		this.game.physics.arcade.collide([this.playerDeath,this.playerDeath2],[this.circleObstacles,this.squareObstacles,this.border1,this.border2]);
 		
@@ -708,10 +712,15 @@ boomRocket.Game.prototype = {
 				effect.reset(this.game.rnd.between(this.player.x-this.game.width,this.player.x+this.game.width),this.game.rnd.between(this.player.y-this.game.height*0.4,this.player.y-this.game.height*0.8));
 			}
         },this);
-
+		
+		
+		
         if(!this.player.shield){
-          this.game.physics.arcade.overlap(this.player, [this.ground,this.circleObstacles,this.squareObstacles,this.border1,this.border2], this.destroyPlayer, null, this);
+          this.game.physics.arcade.overlap(this.player, [this.ground,this.circleObstacles,this.squareObstacles], this.destroyPlayer, null, this);
 		}
+		
+		this.game.physics.arcade.collide(this.player, [this.border1,this.border2], this.destroyPlayer, null, this);
+		
         //this.game.physics.arcade.overlap(this.player, this.areaEffect, this.forceAreaEffect, null, this);
 		this.game.physics.arcade.overlap(this.player, this.areaGroup, this.forceAreaEffect, null, this);
 		if(!this.game.physics.arcade.overlap(this.player, this.areaGroup)){
