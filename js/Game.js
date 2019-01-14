@@ -8,6 +8,7 @@ boomRocket.Game = function(game) {
   this.restartTimer = null;
   this.firstStart = true;
   this.isAffected = false;
+  this.cameraTimer = null;
 };
 
 boomRocket.Game.prototype = {
@@ -20,12 +21,16 @@ boomRocket.Game.prototype = {
     restart: function(){
 		this.game.camera.follow(this.player);
 		this.restartBG.alpha = 1;
-		//Particle reset
-		this.playerDeath.removeAll(true);
-		this.playerDeath2.removeAll(true);
-		this.playerDeath.makeParticles(this.game.cache.getBitmapData('white'), 0, 50, true, false);
-        this.playerDeath2.makeParticles(this.game.cache.getBitmapData('black'), 0, 40, true, false);
-		
+		//Reset Shapes and Particles
+		this.items.exists = true;
+		//Particles
+		this.playerDeath.exists = true;
+		this.playerDeath2.exists = true;
+		this.playerDeath.visible = false;
+		this.playerDeath2.visible = false;
+		this.shipTrail.removeAll(true);
+		this.shipTrail.makeParticles(this.game.cache.getBitmapData('white'), 0, 50, true, false);
+		this.shipTrail.exists = true;
 		this.add.tween(this.restartBG).to({alpha:0},300,Phaser.Easing.Linear.None,true,0,0,false);
         score = 0;
         isJumping = true;
@@ -40,8 +45,7 @@ boomRocket.Game.prototype = {
         this.shipTrail.emitY = this.player.y + 25;
         this.fireEngine.emitX = this.player.x;
         this.fireEngine.emitY = this.player.y + 20;
-		this.playerDeath.visible = false;
-		this.playerDeath2.visible = false;
+		
         this.game.camera.focusOn(this.player);
         this.jumpTrail.revive();
         this.circle.revive();
@@ -72,23 +76,40 @@ boomRocket.Game.prototype = {
         this.gameOver = true;
         this.player.kill();
         this.jumpTrail.kill();
-        this.game.time.events.add(500,this.sendScore,this);
+        this.game.time.events.add(750,this.sendScore,this);
     },
 
     sendScore: function(){
         playsiveSDK.postScore(score);
 		if(config.restartButton){
 			this.game.add.tween(this.restartBlock).to({alpha:1},300,Phaser.Easing.Linear.None, true,50,0,false);
-			//this.game.add.tween(this.restartBlock.scale).to({x:0.6,y:0.6},350,Phaser.Easing.Linear.None, true,0,0,false);
-			//this.game.add.tween(this.restartBlock.scale).to({x:0.5,y:0.5},400,Phaser.Easing.Linear.None, true,0,0,false);
-			//this.restartBlock.anchor.setTo(.5)
-			//this.restartBlock.x = this.game.width*0.5;
-			//this.restartBlock.y = this.game.height*0.7;
 			this.game.time.events.add(400,function(){
 				this.restartBlock.input.enabled = true;
 			},this);
-			
 		}
+		//Pause particles and shapes
+		//Rectangles
+		this.squareObstacles.forEach(function(square){
+			square.speed = 0;
+		});
+		//Circles
+		this.circleObstacles.forEach(function(circle){
+			circle.speed = 0;
+		});
+		//Items
+		this.items.forEach(function(item){
+			item.speed = 0;
+		});
+		this.items.exists = false;
+		this.items.visible = true;
+		//Particles
+		this.playerDeath.exists = false;
+		this.playerDeath.visible = true;
+		this.playerDeath2.exists = false;
+		this.playerDeath.visible = true;
+		this.shipTrail.exists = false;
+		this.shipTrail.visible = true;
+		
 		this.game.add.tween(this.gameOverBG).to({alpha:0.6},400,Phaser.Easing.Linear.None,true,0,0,false);
 		this.game.add.tween(this.best).to({alpha:1},400,Phaser.Easing.Linear.None,true,0,0,false);
 		this.game.add.tween(this.bestScore).to({alpha:1},400,Phaser.Easing.Linear.None,true,0,0,false);
@@ -189,19 +210,26 @@ boomRocket.Game.prototype = {
     },
 
     addRectangles: function(){
-		this.border1 = this.game.add.sprite(this.game.width*0.5-this.game.world.width*0.31,this.game.height*0.5,'border');
+		this.border1 = this.game.add.sprite((this.game.width*0.5-this.game.world.width*0.31)-40,this.game.height*0.5,'border');
+		this.border2 = this.game.add.sprite((this.game.width*0.5+this.game.world.width*0.150)+40,this.game.height*0.5,'border');
+		
 		this.border1.anchor.setTo(0.5,0.5);
 		this.border1.scale.setTo(3,1)
 		this.border1.zIndex = 999;
-		this.border2 = this.game.add.sprite(this.game.width*0.5+this.game.world.width*0.150,this.game.height*0.5,'border');
+		
 		this.border2.anchor.setTo(0.5,0.5);
 		this.border2.scale.setTo(3,1)
 		this.border2.zIndex = 999;
 		
+		this.border1.enableBody = true;
+		this.border2.enableBody = true;
+		
 		this.game.physics.enable(this.border1, Phaser.Physics.ARCADE);
 		this.border1.body.immovable = true;
+		//this.border1.body.setSize(this.border1.width);
 		this.game.physics.enable(this.border2, Phaser.Physics.ARCADE);
 		this.border2.body.immovable = true;
+		//this.border2.body.setSize(this.border2.width*1.5);
 		
         var square = this.squareObstacles.getFirstDead();
         square.anchor.set(0.5);
@@ -279,14 +307,17 @@ boomRocket.Game.prototype = {
     restartObstacles: function(){
         this.squareObstacles.forEach(function(square){
           square.reset(this.game.rnd.between(this.player.x-this.game.width,this.player.x+this.game.width),this.game.rnd.between(this.player.y-this.game.height*0.8,this.player.y-this.game.height*0.3));
+		  square.speed = this.game.rnd.between(-35,35);
         },this);
 
         this.circleObstacles.forEach(function(circle){
           circle.reset(this.game.rnd.between(this.player.x-this.game.width,this.player.x+this.game.width),this.game.rnd.between(this.player.y-this.game.height*0.3,this.player.y-this.game.height*0.8));
+		  circle.speed = this.game.rnd.between(-25,25);
         },this);
 
         this.items.forEach(function(item){
           item.reset(this.game.rnd.between(this.player.x-this.game.width,this.player.x+this.game.width),this.game.rnd.between(this.player.y-this.game.height*0.8,this.player.y-this.game.height*0.3));
+		  item.speed = this.game.rnd.between(10, 25);
         },this);
 
         //this.areaEffect.x = this.game.rnd.between(this.player.x-this.game.width,this.player.x+this.game.width);
@@ -380,13 +411,13 @@ boomRocket.Game.prototype = {
         this.circle.anchor.set(0.5);
         this.circle.alpha = 0.3;
 
-        this.specialPower = this.game.add.emitter(0, 0,250);
+        this.specialPower = this.game.add.emitter(0, 0,200);
         this.specialPower.width = this.game.width;
         this.specialPower.setScale(0.2, 0.3, 15, 40);
         this.specialPower.setAlpha(0.01, 0.8);
         this.specialPower.setYSpeed(-3500, -4800);
         this.specialPower.setRotation(0,0);
-        this.specialPower.makeParticles([this.game.cache.getBitmapData('black'),this.game.cache.getBitmapData('white')],250);
+        this.specialPower.makeParticles([this.game.cache.getBitmapData('black'),this.game.cache.getBitmapData('white')],200);
         this.tapText = this.game.add.bitmapText(config.minWidth*0.5, config.minHeight*0.7,'font', config.startText);
         this.tapText.anchor.set(0.5);
         this.tapText.alpha = 0.3;
@@ -401,12 +432,13 @@ boomRocket.Game.prototype = {
         this.player.body.maxVelocity.set(1500);
         this.player.shield = false;
 		
-		this.shieldTrail = this.game.add.emitter(this.player.x, this.player.y,60);
+		this.shieldTrail = this.game.add.emitter(this.player.x, this.player.y,30);
 		this.shieldTrail.setScale(1, 2, 1, 2, 700, Phaser.Easing.Quadratic.Out);
         this.shieldTrail.setAlpha(0.01, 0.8, 700 ,Phaser.Easing.Linear.InOut);
         this.shieldTrail.setXSpeed(-60, 60);
         this.shieldTrail.setYSpeed(-60, 0);
-        this.shieldTrail.makeParticles(this.game.cache.getBitmapData('white'),60);
+		this.shieldTrail.setRotation(0,360);
+        this.shieldTrail.makeParticles(this.game.cache.getBitmapData('white'),30);
         this.shieldTrail.flow(300, 10, 1, -1, false);
 		this.shieldTrail.visible = false;
 
@@ -428,28 +460,20 @@ boomRocket.Game.prototype = {
         this.ground.body.inmovable = true;
         this.ground.fixedToCamera = true;
 
-        this.shipTrail = this.game.add.emitter(this.player.x, this.player.y + 20,60);
+        this.shipTrail = this.game.add.emitter(this.player.x, this.player.y + 20,45);
         this.shipTrail.setScale(1, 5, 1, 5, 1500, Phaser.Easing.Quadratic.Out);
         this.shipTrail.setAlpha(0.01, 0.6, 3000 ,Phaser.Easing.Linear.InOut);
         this.shipTrail.setXSpeed(-50, 50);
         this.shipTrail.setYSpeed(-10, 40);
-        this.shipTrail.makeParticles(this.game.cache.getBitmapData('black'),60);
+        this.shipTrail.makeParticles(this.game.cache.getBitmapData('white'),45);
         this.shipTrail.flow(600, 10, 1, -1, false);
-
-		/*
-		var data = {
-			lifespan: 300,
-			red{value: 255, control
-		
-		this.fireEngine = manager.createEmitter(Phaser.ParticleStorm. PIXEL, new Phaser.Point(this.player.x,this.player.y + 15));
-		*/
         
-		this.fireEngine = this.game.add.emitter(this.player.x, this.player.y + 15,200);
+		this.fireEngine = this.game.add.emitter(this.player.x, this.player.y + 15,150);
         this.fireEngine.setScale(1, 1, 1, 1);
         this.fireEngine.setAlpha(0.01, 0.5);
         this.fireEngine.setXSpeed(-6, 6);
         this.fireEngine.setYSpeed(-5, -5);
-		this.fireEngine.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],100);
+		this.fireEngine.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],80);
         this.fireEngine.flow(300, 8, 1, -1,false);
         
 		
@@ -476,24 +500,23 @@ boomRocket.Game.prototype = {
         this.circle2.effectDot2.onComplete.add(function(){this.circle2.kill();this.circle2.scale.set(0);this.circle2.alpha = 0;},this);
 		
 
-        this.playerDeath = this.game.add.emitter(this.player.x,  this.player.y,50);
+        this.playerDeath = this.game.add.emitter(this.player.x,  this.player.y,25);
         this.playerDeath.setAlpha(0.1, 0.6, 800);
         this.playerDeath.setXSpeed(-200, 200);
         this.playerDeath.setYSpeed(-200, 200);
-        this.playerDeath.setRotation(50,-100);
+        this.playerDeath.setRotation(0,360);
         this.playerDeath.setScale(1, 5, 1, 5, 1500, Phaser.Easing.Quintic.Out);
 		this.playerDeath.bounce.setTo(1,1);
-        //this.playerDeath.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red'),this.game.cache.getBitmapData('black')], 0, 50, true, false);
-		this.playerDeath.makeParticles(this.game.cache.getBitmapData('white'), 0, 50, true, false);
+		this.playerDeath.makeParticles(this.game.cache.getBitmapData('white'), 0, 25, true, false);
 
-        this.playerDeath2 = this.game.add.emitter(this.player.x,  this.player.y,40);
+        this.playerDeath2 = this.game.add.emitter(this.player.x,  this.player.y,20);
         this.playerDeath2.setAlpha(0.2, 0.3, 800);
-        this.playerDeath2.setXSpeed(-200, 200);
-        this.playerDeath2.setYSpeed(-200, 200);
-        this.playerDeath2.setRotation(50,-100);
+        this.playerDeath2.setXSpeed(-225, 225);
+        this.playerDeath2.setYSpeed(-225, 225);
+        this.playerDeath2.setRotation(0,360);
 		this.playerDeath2.bounce.setTo(1,1);
         this.playerDeath2.setScale(6, 8, 6, 8, 1500, Phaser.Easing.Quintic.Out);
-        this.playerDeath2.makeParticles(this.game.cache.getBitmapData('black'), 0, 40, true, false);
+        this.playerDeath2.makeParticles(this.game.cache.getBitmapData('black'), 0, 20, true, false);
 
 		this.playerDeath.visible = false;
 		this.playerDeath2.visible = false;
@@ -504,7 +527,6 @@ boomRocket.Game.prototype = {
         this.jumpTrail.setXSpeed(-20, 20);
         this.jumpTrail.setYSpeed(10, 800);
         this.jumpTrail.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],60);
-        //this.player.addChild(this.jumpTrail);
 		this.jumpTrail.flow(3200, 10, 1, -1, false);
     },
      
@@ -546,16 +568,19 @@ boomRocket.Game.prototype = {
     },
 
     engineOn: function(){
-		  if(this.gameOver||this.isPowerUp) return;
+		if(this.gameOver||this.isPowerUp) return;
 
-          isJumping = true;
-          this.isPowerUp = false;
-          //this.jumpTrail.flow(200, 250, 20, 20,false);
-		  if(this.speedTween != null) this.speedTween.stop();
-		  this.player.body.velocity.x = 0;
-          this.player.body.velocity.y = 0;
-		  this.jumpTrail.start(false, 400, 80, 15);
-          this.acceleratePlayer(config.normalJump,600);
+        isJumping = true;
+        this.isPowerUp = false;
+        //this.jumpTrail.flow(200, 250, 20, 20,false);
+		if(this.speedTween != null) this.speedTween.stop();
+		this.player.body.velocity.x = 0;
+        this.player.body.velocity.y = 0;
+		this.jumpTrail.start(false, 400, 80, 15);
+        this.acceleratePlayer(config.normalJump,600);
+		this.game.camera.follow(null);
+		this.game.camera.follow(this.player,null,0.7,0.7,0,0);
+		moveTween = this.add.tween(this.game.camera).to({lerpX:0.05,lerpY:0.05},4000,Phaser.Easing.Sinusoidal.InOut,true,0,0,false);
      },
 
     engineOff: function(){
@@ -643,6 +668,15 @@ boomRocket.Game.prototype = {
     update: function(){
 		var scaler = 0;
 		var scaleUp = true;
+		this.shipTrail.forEachDead(function(particle){
+			particle.tint = 0xffffff;
+		});
+		this.shipTrail.forEachAlive(function(particle){
+			if(particle.tint == 0x000000)return;
+			particle.tint = particle.tint - (0x0e0e0e/2);
+			if(particle.tint < 0) particle.tint = 0x0;
+		});
+		
         if(!this.isStart) return;
 
 		this.border1.y = this.player.y;
@@ -655,9 +689,8 @@ boomRocket.Game.prototype = {
 		this.shieldTrail.emitX = this.player.x;
 		this.shieldTrail.emitY = this.player.y;
 		
-		this.shipTrail.forEachDead(function(particle){
-			particle.tint
-		});
+		
+		
 		
 		this.game.physics.arcade.collide([this.playerDeath,this.playerDeath2],[this.circleObstacles,this.squareObstacles,this.border1,this.border2]);
 		
@@ -685,18 +718,6 @@ boomRocket.Game.prototype = {
         },this);
 
         this.items.forEach(function(item){
-			/*if(scaler >= 1){
-				scaleUp = false;
-			}
-			if(scaler <= -1){
-				scaleUp = true;
-			}
-			if(scaleUp){
-				scaler += 0.01;
-			}else{
-				scaler -= 0.01;
-			}
-			//item.body.setSize(item.width + 0.3*scaler);*/
             item.y += item.speed * (this.game.time.elapsed/1000);
               if(item.y > this.player.y + (this.game.height*0.5))
                 item.reset(this.game.rnd.between(this.player.x-this.game.width,this.player.x+this.game.width),this.game.rnd.between(this.player.y-this.game.height*0.4,this.player.y-this.game.height*0.3));

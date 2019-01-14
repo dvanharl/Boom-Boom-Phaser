@@ -13,5 +13,5 @@ var config = {
 	desiredFPS:60, // 60 or 30 depending mobile device target
 	startText:"TAB TO START",
 	restartDelay: 3000, //in miliseconds
-	restartButton: true
+	restartButton: false
 }
