@@ -383,14 +383,16 @@ boomRocket.Game.prototype = {
         this.game.flexcale.resize();
         this.graphics.y = this.game.world.height-this.graphics.height;
 		
-    },
-
-    start: function(){
 		if(this.firstStart){
 			this.restartBG.alpha = 1;
 			this.add.tween(this.restartBG).to({alpha:0},300,Phaser.Easing.Linear.None,true,0,0,false);
 			this.firstStart = false;
 		}
+		
+    },
+
+    start: function(){
+		
         //this.circle.kill();
         this.tapText.kill();
         isJumping = false;
