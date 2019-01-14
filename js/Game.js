@@ -396,7 +396,7 @@ boomRocket.Game.prototype = {
         isJumping = false;
         this.isStart = true;
         this.player.body.drag.set(50);
-        this.player.body.gravity.y = 80;
+        this.player.body.gravity.y = 60;
         this.player.body.allowGravity = true;
         this.engineOn();
 		this.game.camera.lerp.x = 0.6;
@@ -588,7 +588,7 @@ boomRocket.Game.prototype = {
           isJumping = false;
 		  this.isPowerUp = false;
 		  this.player.body.allowGravity = true;
-		  this.player.body.gravity.y = 80;
+		  this.player.body.gravity.y = 60;
 		  this.game.time.events.add(1000,function(){
 			  this.player.shield = false;
 			  if(!this.isPowerUp){

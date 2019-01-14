@@ -3,7 +3,7 @@ var config = {
 	minWidth: 480,
 	minHeight: 720,
 	rotationSpeed: 90, 
-	angleLimit: 80,
+	angleLimit: 120,
 	items:12,
 	spikes:14,
 	rectangles:28,
