@@ -471,7 +471,7 @@ boomRocket.Game.prototype = {
         
 		this.fireEngine = this.game.add.emitter(this.player.x, this.player.y + 15,150);
         this.fireEngine.setScale(1, 1, 1, 1);
-        this.fireEngine.setAlpha(0.01, 0.5);
+        this.fireEngine.setAlpha(0.01, 0.3);
         this.fireEngine.setXSpeed(-6, 6);
         this.fireEngine.setYSpeed(-5, -5);
 		this.fireEngine.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],80);
@@ -570,6 +570,13 @@ boomRocket.Game.prototype = {
 
     engineOn: function(){
 		if(this.gameOver||this.isPowerUp) return;
+		
+		this.fireEngine.setScale(1,4,1,4);
+		this.fireEngine.setXSpeed(-20,20);
+		this.fireEngine.setYSpeed(3,3);
+		this.fireEngine.setRotation(0,30);
+		this.fireEngine.flow(150, 10, 5, -1,false);
+		
 		this.shipTrail.lifespan = 1200;
 		this.shipTrail.setXSpeed(-25,25);
 		this.shipTrail.setYSpeed(-5,60);
@@ -593,6 +600,11 @@ boomRocket.Game.prototype = {
      },
 
     engineOff: function(){
+		this.fireEngine.setScale(1,1,1,1);
+		this.fireEngine.setXSpeed(-6,6);
+		this.fireEngine.setYSpeed(-5,-5);
+		this.fireEngine.flow(300, 8, 1, -1,false);
+		
 		this.shipTrail.lifespan = 600;
 		this.shipTrail.setXSpeed(-50,50);
 		this.shipTrail.setYSpeed(-10,40);
