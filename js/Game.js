@@ -203,7 +203,7 @@ boomRocket.Game.prototype = {
         this.circleObstacles.createMultiple(config.spikes, 'spike');
 
         this.circleObstacles.forEach(function(circle){
-            var randomSize = this.game.rnd.realInRange(0.1,0.5);
+            var randomSize = this.game.rnd.realInRange(0.07,0.25);
             circle.scale.set(circle.scale.x * randomSize, circle.scale.y * randomSize);
         },this);
         
@@ -587,7 +587,8 @@ boomRocket.Game.prototype = {
 		this.jumpTrail.start(false, 400, 80, 15);
         this.acceleratePlayer(config.normalJump,600);
 		this.game.camera.follow(null);
-		this.game.camera.follow(this.player,null,0.7,0.7,0,-400);
+		this.game.camera.follow(this.player,null,0.7,0.7,0,-350);
+		this.game.camera.deadzone = new Phaser.Rectangle(this.game.width*0.5,this.game.height*0.55,this.game.width*0.3,this.game.height*0.15);
 		moveTween = this.game.add.tween(this.game.camera).to({lerpX:0.05,lerpY:0.05},400,Phaser.Easing.Sinusoidal.InOut,true,0,0,false);
      },
 

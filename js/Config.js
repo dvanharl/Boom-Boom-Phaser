@@ -2,8 +2,8 @@ var config = {
 	//GAME OPTIONS//
 	minWidth: 480,
 	minHeight: 720,
-	rotationSpeed: 90, 
-	angleLimit: 150,
+	rotationSpeed: 135, 
+	angleLimit: 90,
 	items:12,
 	spikes:12,
 	rectangles:24,
