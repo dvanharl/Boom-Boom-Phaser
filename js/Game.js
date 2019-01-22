@@ -471,13 +471,13 @@ boomRocket.Game.prototype = {
         this.shipTrail.makeParticles(this.game.cache.getBitmapData('white'),45);
         this.shipTrail.flow(600, 10, 1, -1, false);
         
-		this.fireEngine = this.game.add.emitter(this.player.x, this.player.y + 15,150);
+		this.fireEngine = this.game.add.emitter(this.player.x, this.player.y + 15,120);
         this.fireEngine.setScale(1, 1, 1, 1);
         this.fireEngine.setAlpha(0.01, 0.3);
-        this.fireEngine.setXSpeed(-6, 6);
+        this.fireEngine.setXSpeed(-10, 10);
         this.fireEngine.setYSpeed(-5, -5);
-		this.fireEngine.makeParticles([this.game.cache.getBitmapData('yellow'),this.game.cache.getBitmapData('red')],80);
-        this.fireEngine.flow(300, 8, 1, -1,false);
+		this.fireEngine.makeParticles([this.game.cache.getBitmapData('red'),this.game.cache.getBitmapData('yellow')],120);
+        this.fireEngine.flow(300, 50, 3, -1,false);
         
 		
 		this.circle2 = this.game.add.sprite(0, 0, 'circle');
@@ -574,10 +574,10 @@ boomRocket.Game.prototype = {
 		if(this.gameOver||this.isPowerUp) return;
 		
 		this.fireEngine.setScale(1,4,1,4);
-		this.fireEngine.setXSpeed(-20,20);
+		this.fireEngine.setXSpeed(-80,80);
 		this.fireEngine.setYSpeed(3,3);
 		this.fireEngine.setRotation(0,30);
-		this.fireEngine.flow(150, 10, 5, -1,false);
+		this.fireEngine.flow(150, 10, 10, -1,true);
 		
 		this.shipTrail.lifespan = 1200;
 		this.shipTrail.setXSpeed(-25,25);
@@ -603,9 +603,9 @@ boomRocket.Game.prototype = {
 
     engineOff: function(){
 		this.fireEngine.setScale(1,1,1,1);
-		this.fireEngine.setXSpeed(-6,6);
+		this.fireEngine.setXSpeed(-10,10);
 		this.fireEngine.setYSpeed(-5,-5);
-		this.fireEngine.flow(300, 8, 1, -1,false);
+		this.fireEngine.flow(300, 50, 3, -1,false);
 		
 		this.shipTrail.lifespan = 600;
 		this.shipTrail.setXSpeed(-50,50);
@@ -699,6 +699,18 @@ boomRocket.Game.prototype = {
 			particle.tint = particle.tint - (0x0e0e0e/2);
 			if(particle.tint < 0) particle.tint = 0x0;
 		});
+		
+		/*this.fireEngine.forEachDead(function(particle){
+			particle.tint = 0xffd200;
+		});
+		this.fireEngine.forEachAlive(function(particle){
+			if(particle.tint == 0x8e8e8e)return;
+			if(particle.tint > 0xff0000){
+				particle.tint = particle.tint - 0x600;
+			}else if(particle.tint <= 0xff0000){
+				particle.tint = particle.tint - 0x6f7f8;
+			}else if(particle.tint < 0x8e8e8e) particle.tint = 0x8e8e8e;
+		});*/
 		
         if(!this.isStart) return;
 
